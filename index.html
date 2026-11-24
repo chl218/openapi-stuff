@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenAPI with C# — the big picture</title><link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<header class="top"><strong>OpenAPI / Swagger with C#</strong><nav><a href="lesson-01-anatomy.html">Lessons</a><a href="#plan">Plan</a><a href="#local">Run locally</a></nav></header>
+<main>
+<h1>One file describes your API. Everything else is generated from it.</h1>
+<p class="lede">OpenAPI is a machine-readable contract for an HTTP API. Swagger is the tooling built around it. This course takes you from reading a contract to deploying an API that publishes one, in C# on ASP.NET Core.</p>
+
+<h2>The big picture</h2>
+<div class="sheet">
+<svg viewBox="0 0 860 400" role="img" aria-labelledby="t0 d0">
+<title id="t0">OpenAPI as the hub</title><desc id="d0">The OpenAPI document sits in the centre. A C# server is checked against it or produces it. Swagger UI, client SDKs, tests, and an API gateway all consume it.</desc>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#12304a"/></marker></defs>
+<rect x="320" y="150" width="220" height="100" fill="#fff" stroke="#c9402b" stroke-width="3"/>
+<text x="430" y="188" text-anchor="middle" font-size="18" font-weight="700" fill="#c9402b">openapi.json / .yaml</text>
+<text x="430" y="212" text-anchor="middle" font-size="13" fill="#12304a">the contract</text>
+<text x="430" y="232" text-anchor="middle" font-size="12" fill="#5b7389">paths · schemas · security</text>
+
+<rect x="20" y="150" width="190" height="100" fill="#fff" stroke="#12304a" stroke-width="2"/>
+<text x="115" y="192" text-anchor="middle" font-size="16" font-weight="700" fill="#12304a">C# server</text>
+<text x="115" y="214" text-anchor="middle" font-size="12" fill="#5b7389">ASP.NET Core</text>
+<path d="M210 185 H318" stroke="#12304a" stroke-width="2" marker-end="url(#a)" class="draw"/>
+<text x="264" y="177" text-anchor="middle" font-size="11" fill="#5b7389">code-first</text>
+<path d="M318 220 H212" stroke="#12304a" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#a)"/>
+<text x="264" y="240" text-anchor="middle" font-size="11" fill="#5b7389">contract-first</text>
+
+<g font-size="14" font-weight="700" fill="#12304a" text-anchor="middle">
+<rect x="620" y="20" width="220" height="64" fill="#fff" stroke="#2f6f9f" stroke-width="2"/><text x="730" y="48">Swagger UI / docs</text><text x="730" y="68" font-size="12" font-weight="400" fill="#5b7389">try calls in a browser</text>
+<rect x="620" y="110" width="220" height="64" fill="#fff" stroke="#2f6f9f" stroke-width="2"/><text x="730" y="138">Client SDKs</text><text x="730" y="158" font-size="12" font-weight="400" fill="#5b7389">C#, TypeScript, …</text>
+<rect x="620" y="200" width="220" height="64" fill="#fff" stroke="#2f6f9f" stroke-width="2"/><text x="730" y="228">Linters &amp; diff checks</text><text x="730" y="248" font-size="12" font-weight="400" fill="#5b7389">catch breaking changes</text>
+<rect x="620" y="290" width="220" height="64" fill="#fff" stroke="#2f6f9f" stroke-width="2"/><text x="730" y="318">API gateway</text><text x="730" y="338" font-size="12" font-weight="400" fill="#5b7389">routing, auth, throttling</text>
+</g>
+<g stroke="#12304a" stroke-width="2" fill="none" marker-end="url(#a)">
+<path d="M540 175 L618 55"/><path d="M540 190 L618 142"/><path d="M540 215 L618 230"/><path d="M540 235 L618 318"/></g>
+<text x="430" y="330" text-anchor="middle" font-size="13" fill="#5b7389">One source of truth, many consumers</text>
+</svg>
+<p class="caption">Solid arrow: the server produces the contract. Dashed arrow: you write the contract first and the server must match it.</p>
+</div>
+
+<h2>The workflow you will practise</h2>
+<div class="sheet">
+<svg viewBox="0 0 860 150" role="img" aria-labelledby="t1">
+<title id="t1">Seven-stage OpenAPI workflow</title>
+<defs><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#12304a"/></marker></defs>
+<g font-size="13" font-weight="700" fill="#12304a" text-anchor="middle">
+<rect x="6" y="40" width="108" height="56" fill="#fff" stroke="#12304a" stroke-width="2"/><text x="60" y="64">Design</text><text x="60" y="82" font-size="11" font-weight="400">resources, errors</text>
+<rect x="132" y="40" width="108" height="56" fill="#fff" stroke="#12304a" stroke-width="2"/><text x="186" y="64">Describe</text><text x="186" y="82" font-size="11" font-weight="400">write or generate</text>
+<rect x="258" y="40" width="108" height="56" fill="#fff" stroke="#12304a" stroke-width="2"/><text x="312" y="64">Implement</text><text x="312" y="82" font-size="11" font-weight="400">handlers, models</text>
+<rect x="384" y="40" width="108" height="56" fill="#fff" stroke="#12304a" stroke-width="2"/><text x="438" y="64">Validate</text><text x="438" y="82" font-size="11" font-weight="400">lint, diff, test</text>
+<rect x="510" y="40" width="108" height="56" fill="#fff" stroke="#12304a" stroke-width="2"/><text x="564" y="64">Build</text><text x="564" y="82" font-size="11" font-weight="400">spec as artifact</text>
+<rect x="636" y="40" width="108" height="56" fill="#fff" stroke="#12304a" stroke-width="2"/><text x="690" y="64">Deploy</text><text x="690" y="82" font-size="11" font-weight="400">container, CI/CD</text>
+<rect x="762" y="40" width="92" height="56" fill="#fff" stroke="#c9402b" stroke-width="2"/><text x="808" y="64">Evolve</text><text x="808" y="82" font-size="11" font-weight="400">version safely</text>
+</g>
+<g stroke="#12304a" stroke-width="2" marker-end="url(#b)"><path d="M114 68H130"/><path d="M240 68H256"/><path d="M366 68H382"/><path d="M492 68H508"/><path d="M618 68H634"/><path d="M744 68H760"/></g>
+<path d="M808 96 V128 H60 V98" stroke="#c9402b" stroke-width="2" fill="none" stroke-dasharray="6 4" marker-end="url(#b)"/>
+</svg>
+<p class="caption">Evolving the API sends you back to Design. The loop never stops.</p>
+</div>
+
+<h2 id="plan">Learning plan</h2>
+<p>Eight lessons, each about 60–90 minutes. Every lesson has a page with a diagram and a folder of pseudocode. You write the real C#.</p>
+<ul class="cards">
+<li><a href="lesson-01-anatomy.html">1. Anatomy of a contract</a>Read and hand-write an OpenAPI document.</li>
+<li><a href="lesson-02-code-first.html">2. Code-first in ASP.NET Core</a>Generate the spec from a running API. Open Swagger UI.</li>
+<li><a href="lesson-03-describe-well.html">3. Describe it well</a>Schemas, status codes, examples, validation rules.</li>
+<li><a href="lesson-04-contract-first.html">4. Contract-first</a>Write the YAML, then generate a client and server stubs.</li>
+<li><a href="lesson-05-security.html">5. Security schemes</a>Document and enforce JWT bearer auth.</li>
+<li><a href="lesson-06-versioning.html">6. Versioning and breaking changes</a>Evolve the API without breaking consumers.</li>
+<li><a href="lesson-07-build-pipeline.html">7. Build pipeline</a>Emit, lint, diff, and test the spec in CI.</li>
+<li><a href="lesson-08-deploy.html">8. Deploy</a>Container, CI/CD, and publishing docs safely.</li>
+</ul>
+
+<h2>Code-first or contract-first?</h2>
+<table>
+<tr><th></th><th>Code-first</th><th>Contract-first</th></tr>
+<tr><th>You write</th><td>C# endpoints; the spec is generated</td><td>YAML spec; C# is built to match</td></tr>
+<tr><th>Good when</th><td>One team owns server and clients; you want speed</td><td>Several teams or external consumers; the API is the product</td></tr>
+<tr><th>Risk</th><td>A refactor can silently change the contract</td><td>Spec and code can drift unless you test for it</td></tr>
+<tr><th>Lessons</th><td>2, 3</td><td>4</td></tr>
+</table>
+
+<h2 id="local">Run everything locally</h2>
+<ul>
+<li>Open any <code>.html</code> lesson by double-clicking it. No server needed.</li>
+<li>Install the <a href="https://dotnet.microsoft.com/download">.NET SDK</a> (the course targets .NET 10, the current LTS; .NET 9 also works). Check with <code>dotnet --version</code>.</li>
+<li>Later lessons use two optional tools: <code>npm</code> (for Spectral lint) and Docker (for Lesson 8). Each lesson says when.</li>
+</ul>
+<div class="box"><strong class="t">How the pseudocode folders work</strong>
+Each lesson has <code>pseudocode/lesson-NN-…/</code> with a <code>README.md</code> (goal, run steps, done-checks) and <code>.pseudo</code> files describing what to build. They contain no C#. Create a fresh project next to them and translate the steps yourself.</div>
+<div class="box"><strong class="t">Solutions</strong>
+After you try a lesson, compare your work with <code>solutions/</code>. It mirrors <code>pseudocode/</code> with working C#, YAML, and scripts. It was written without a compiler, so read <code>solutions/README.md</code> for what may need small fixes.</div>
+<p class="meta">Package names and versions change. Check NuGet for the current release before you add one.</p>
+</main></body></html>

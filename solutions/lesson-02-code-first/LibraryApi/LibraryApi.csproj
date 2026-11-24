@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>     <!-- the .NET version to build for -->
+    <Nullable>enable</Nullable>                    <!-- compiler warns about possible null mistakes -->
+    <ImplicitUsings>enable</ImplicitUsings>        <!-- common "using" lines are added for you -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Generates the OpenAPI document from your endpoints. -->
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.*" />
+    <!-- Viewer only: the Swagger UI page. Pin an exact version after the first restore. -->
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="*" />
+  </ItemGroup>
+
+</Project>

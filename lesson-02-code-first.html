@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 2 — Code-first in ASP.NET Core</title><link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<header class="top"><a href="index.html"><strong>OpenAPI / Swagger with C#</strong></a><nav><a href="lesson-01-anatomy.html">Prev</a><a href="lesson-03-describe-well.html">Next: Describe well</a></nav></header>
+<main>
+<p class="meta">Lesson 2 of 8 · pseudocode: <code>pseudocode/lesson-02-code-first/</code></p>
+<h1>Code-first: let ASP.NET Core write the spec</h1>
+<p class="lede">You write minimal API endpoints. The framework inspects them at startup and serves an OpenAPI document. Swagger UI reads that document and draws a page you can click.</p>
+
+<div class="sheet">
+<svg viewBox="0 0 860 300" role="img" aria-labelledby="t">
+<title id="t">Code-first pipeline</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#12304a"/></marker></defs>
+<g font-size="14" font-weight="700" fill="#12304a" text-anchor="middle">
+<rect x="10" y="90" width="170" height="110" fill="#fff" stroke="#12304a" stroke-width="2"/><text x="95" y="122">Program.cs</text>
+<text x="95" y="146" font-size="11" font-weight="400" class="m">MapGet("/books")</text><text x="95" y="164" font-size="11" font-weight="400" class="m">MapPost("/books")</text><text x="95" y="182" font-size="11" font-weight="400" class="m">record Book(...)</text>
+<rect x="225" y="90" width="170" height="110" fill="#fff" stroke="#12304a" stroke-width="2"/><text x="310" y="122">Endpoint metadata</text><text x="310" y="146" font-size="11" font-weight="400">routes, types,</text><text x="310" y="164" font-size="11" font-weight="400">Produces&lt;T&gt;, tags</text>
+<rect x="440" y="90" width="170" height="110" fill="#fff" stroke="#c9402b" stroke-width="3"/><text x="525" y="122" fill="#c9402b">OpenAPI generator</text><text x="525" y="146" font-size="11" font-weight="400">AddOpenApi()</text><text x="525" y="164" font-size="11" font-weight="400">MapOpenApi()</text>
+<rect x="655" y="30" width="195" height="80" fill="#fff" stroke="#2f6f9f" stroke-width="2"/><text x="752" y="60">/openapi/v1.json</text><text x="752" y="82" font-size="11" font-weight="400">machine-readable</text>
+<rect x="655" y="150" width="195" height="80" fill="#fff" stroke="#2f6f9f" stroke-width="2"/><text x="752" y="180">/swagger</text><text x="752" y="202" font-size="11" font-weight="400">Swagger UI page</text>
+</g>
+<g stroke="#12304a" stroke-width="2" fill="none" marker-end="url(#a)"><path d="M180 145H223"/><path d="M395 145H438"/><path d="M610 120 L653 80"/><path d="M752 112 V148" stroke-dasharray="5 4"/></g>
+<text x="780" y="136" font-size="11" fill="#5b7389">UI reads json</text>
+<text x="430" y="270" text-anchor="middle" font-size="13" fill="#5b7389">Runs on app startup. No separate build step for the basic case.</text>
+</svg>
+</div>
+
+<h2>What you will learn</h2>
+<ul>
+<li>Create a minimal API project with <code>dotnet new web</code>.</li>
+<li>Turn on OpenAPI generation (the built-in <code>Microsoft.AspNetCore.OpenApi</code> package) and fetch the JSON.</li>
+<li>Add a Swagger UI front end (<code>Swashbuckle.AspNetCore.SwaggerUI</code>) pointed at that JSON.</li>
+<li>Use typed results so the spec shows real response bodies.</li>
+</ul>
+
+<h2>Workflow</h2>
+<ol>
+<li>Create the project and an in-memory <code>Book</code> list (no database yet).</li>
+<li>Map <code>GET /books</code>, <code>GET /books/{id}</code>, <code>POST /books</code>, <code>DELETE /books/{id}</code>.</li>
+<li>Register OpenAPI and map the document endpoint.</li>
+<li>Add the Swagger UI middleware, development only.</li>
+<li>Run, open the UI, call each endpoint from the page.</li>
+</ol>
+
+<div class="box"><strong class="t">Why two packages?</strong>
+Since .NET 9 the template no longer bundles Swashbuckle. The built-in package generates the document. Swagger UI (or an alternative such as Scalar) is only a viewer. You can use the document without any UI.</div>
+
+<div class="box try"><strong class="t">Run it locally</strong>
+<code>dotnet new web -n LibraryApi</code>, implement per the pseudocode, then <code>dotnet run</code>. Open the URL shown in the console and add <code>/openapi/v1.json</code>, then <code>/swagger</code>. Save the JSON; you will diff it in Lessons 6–7.</div>
+<div class="box check"><strong class="t">You are done when</strong>
+Swagger UI lists four operations and "Try it out" creates a book that a later GET returns. The JSON shows a <code>Book</code> schema under <code>components</code>.</div>
+
+<div class="pager"><a href="lesson-01-anatomy.html">← Lesson 1</a><a href="lesson-03-describe-well.html">Lesson 3: Describe it well →</a></div>
+</main></body></html>
