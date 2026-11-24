@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 1 — Anatomy of a contract</title><link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<header class="top"><a href="index.html"><strong>OpenAPI / Swagger with C#</strong></a><nav><a href="index.html">Overview</a><a href="lesson-02-code-first.html">Next: Code-first</a></nav></header>
+<main>
+<p class="meta">Lesson 1 of 8 · pseudocode: <code>pseudocode/lesson-01-anatomy/</code></p>
+<h1>Anatomy of an OpenAPI contract</h1>
+<p class="lede">Before you generate anything, learn to read the file. Every tool in this course reads the same few top-level sections.</p>
+
+<div class="sheet">
+<svg viewBox="0 0 860 430" role="img" aria-labelledby="t" >
+<title id="t">Structure of an OpenAPI document</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#c9402b"/></marker></defs>
+<rect x="10" y="10" width="840" height="410" fill="none" stroke="#12304a" stroke-width="2"/>
+<text x="24" y="34" font-size="14" font-weight="700" fill="#12304a">openapi.yaml</text>
+<g font-size="13" fill="#12304a">
+<rect x="24" y="48" width="230" height="40" fill="#fff" stroke="#12304a"/><text x="36" y="73" class="m">openapi: 3.1.0</text>
+<rect x="24" y="96" width="230" height="40" fill="#fff" stroke="#12304a"/><text x="36" y="121" class="m">info: title, version</text>
+<rect x="24" y="144" width="230" height="40" fill="#fff" stroke="#12304a"/><text x="36" y="169" class="m">servers: [ url ]</text>
+<rect x="24" y="192" width="230" height="40" fill="#fff" stroke="#12304a"/><text x="36" y="217" class="m">security / tags</text>
+</g>
+<text x="24" y="262" font-size="12" fill="#5b7389">Metadata. Tools read this first.</text>
+
+<rect x="290" y="48" width="260" height="360" fill="#eef6fb" stroke="#2f6f9f" stroke-width="2"/>
+<text x="304" y="72" font-size="14" font-weight="700" fill="#12304a" class="m">paths:</text>
+<rect x="304" y="86" width="232" height="70" fill="#fff" stroke="#12304a"/>
+<text x="316" y="108" font-size="13" class="m" fill="#12304a">/books</text>
+<text x="316" y="128" font-size="12" class="m" fill="#2f6f9f">get  · listBooks</text>
+<text x="316" y="146" font-size="12" class="m" fill="#2f6f9f">post · createBook</text>
+<rect x="304" y="166" width="232" height="70" fill="#fff" stroke="#12304a"/>
+<text x="316" y="188" font-size="13" class="m" fill="#12304a">/books/{id}</text>
+<text x="316" y="208" font-size="12" class="m" fill="#2f6f9f">get · getBook</text>
+<text x="316" y="226" font-size="12" class="m" fill="#2f6f9f">delete · deleteBook</text>
+<text x="304" y="262" font-size="12" fill="#12304a" font-weight="700">each operation has:</text>
+<g font-size="12" class="m" fill="#12304a"><text x="304" y="282">operationId</text><text x="304" y="300">parameters (path, query)</text><text x="304" y="318">requestBody</text><text x="304" y="336">responses: 200, 400, 404</text><text x="304" y="354">security</text></g>
+<text x="304" y="386" font-size="12" fill="#5b7389">What the API can do.</text>
+
+<rect x="610" y="48" width="226" height="360" fill="#fff" stroke="#c9402b" stroke-width="2"/>
+<text x="624" y="72" font-size="14" font-weight="700" fill="#c9402b" class="m">components:</text>
+<rect x="624" y="86" width="198" height="60" fill="#fff" stroke="#12304a"/>
+<text x="634" y="108" font-size="12" class="m" fill="#12304a">schemas.Book</text><text x="634" y="128" font-size="11" class="m" fill="#5b7389">id, title, isbn</text>
+<rect x="624" y="156" width="198" height="60" fill="#fff" stroke="#12304a"/>
+<text x="634" y="178" font-size="12" class="m" fill="#12304a">schemas.NewBook</text><text x="634" y="198" font-size="11" class="m" fill="#5b7389">title, isbn</text>
+<rect x="624" y="226" width="198" height="60" fill="#fff" stroke="#12304a"/>
+<text x="634" y="248" font-size="12" class="m" fill="#12304a">schemas.Problem</text><text x="634" y="268" font-size="11" class="m" fill="#5b7389">type, title, status</text>
+<rect x="624" y="296" width="198" height="40" fill="#fff" stroke="#12304a"/>
+<text x="634" y="321" font-size="12" class="m" fill="#12304a">securitySchemes</text>
+<text x="624" y="366" font-size="12" fill="#5b7389">Reusable pieces.</text>
+<path d="M538 120 C575 120 575 112 622 112" stroke="#c9402b" stroke-width="2" fill="none" marker-end="url(#a)"/>
+<path d="M538 336 C580 336 580 262 622 262" stroke="#c9402b" stroke-width="2" fill="none" marker-end="url(#a)"/>
+<text x="560" y="402" font-size="11" fill="#c9402b" text-anchor="middle" class="m">$ref</text>
+</svg>
+<p class="caption">Red arrows are <code>$ref</code> pointers: operations point at shared schemas so you define <code>Book</code> once.</p>
+</div>
+
+<h2>What you will learn</h2>
+<ul>
+<li>The four jobs of a spec: metadata, paths, components, security.</li>
+<li>Why <code>operationId</code> matters (generated method names).</li>
+<li>How <code>$ref</code> keeps the document small.</li>
+<li>The difference between OpenAPI (the standard) and Swagger (the tools and the older 2.0 name).</li>
+</ul>
+
+<h2>Concepts</h2>
+<table>
+<tr><th>Term</th><th>Meaning</th></tr>
+<tr><td>OpenAPI Specification (OAS)</td><td>The standard format. Current line is 3.x (3.1 is common; 3.2 is newer). Version 2.0 was called Swagger.</td></tr>
+<tr><td>Swagger</td><td>Tooling: Swagger UI (browser docs), Swagger Editor, Swagger Codegen.</td></tr>
+<tr><td>Path item</td><td>A URL template such as <code>/books/{id}</code> with one operation per HTTP method.</td></tr>
+<tr><td>Schema</td><td>A JSON Schema description of a request or response body.</td></tr>
+<tr><td>operationId</td><td>A unique name per operation. Client generators turn it into a method name.</td></tr>
+</table>
+
+<h2>Run it locally</h2>
+<div class="box try"><strong class="t">Exercise</strong>
+Hand-write a small spec for a Library API with two paths, then load it in a viewer. Follow <code>pseudocode/lesson-01-anatomy/README.md</code>. To view it in C#, build the small <code>SpecViewer</code> web project described in <code>viewer.pseudo</code>: <code>dotnet run</code>, then open <code>/swagger</code> on the port the console prints. Editing the YAML and refreshing the page is your feedback loop. (No SDK yet? Paste the file into the online Swagger Editor.)</div>
+<div class="box check"><strong class="t">You are done when</strong>
+The viewer renders both paths with no errors, and you can say which section a given line belongs to.</div>
+
+<div class="pager"><a href="index.html">← Overview</a><a href="lesson-02-code-first.html">Lesson 2: Code-first →</a></div>
+</main></body></html>

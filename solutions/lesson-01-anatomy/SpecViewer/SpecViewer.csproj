@@ -1,0 +1,20 @@
+<!-- "Sdk=...Web" gives you ASP.NET Core: the web server and minimal API features. -->
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>     <!-- the .NET version to build for -->
+    <Nullable>enable</Nullable>                    <!-- compiler warns about possible null mistakes -->
+    <ImplicitUsings>enable</ImplicitUsings>        <!-- common "using" lines are added for you -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Swagger UI: the browser page that displays the spec. "*" = latest; pin a version later. -->
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="*" />
+  </ItemGroup>
+
+  <!-- Fallback copy of the hand-written spec, used if ../openapi.yaml is not found at run time. -->
+  <ItemGroup>
+    <Content Include="../openapi.yaml" Link="openapi.yaml" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

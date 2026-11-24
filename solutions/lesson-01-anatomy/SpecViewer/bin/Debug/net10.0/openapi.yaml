@@ -1,0 +1,110 @@
+openapi: 3.1.0
+info:
+  title: Library API
+  version: 1.0.0
+  description: Look up, add, and remove books.
+servers:
+  - url: http://localhost:5000
+tags:
+  - name: Books
+paths:
+  /books:
+    get:
+      tags: [Books]
+      operationId: listBooks
+      summary: List books
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: A page of books.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Book" }
+        "400":
+          description: The limit is out of range.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problem" }
+    post:
+      tags: [Books]
+      operationId: createBook
+      summary: Add a book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NewBook" }
+      responses:
+        "201":
+          description: The book was created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Book" }
+        "400":
+          description: The request body is invalid.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problem" }
+  /books/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [Books]
+      operationId: getBook
+      summary: Get one book
+      responses:
+        "200":
+          description: The book.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Book" }
+        "404":
+          description: No book has this id.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problem" }
+    delete:
+      tags: [Books]
+      operationId: deleteBook
+      summary: Remove a book
+      responses:
+        "204":
+          description: The book was removed.
+        "404":
+          description: No book has this id.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problem" }
+components:
+  schemas:
+    Book:
+      type: object
+      required: [id, title, isbn]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        isbn: { type: string }
+        year: { type: integer }
+    NewBook:
+      type: object
+      required: [title, isbn]
+      properties:
+        title: { type: string }
+        isbn: { type: string }
+        year: { type: integer }
+    Problem:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        detail: { type: string }
+        status: { type: integer }

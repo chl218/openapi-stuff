@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "E86gteR/jMw=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Jack\\Documents\\repo\\openapi-course\\solutions\\lesson-01-anatomy\\SpecViewer\\SpecViewer.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Jack\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\11.0.1\\swashbuckle.aspnetcore.swaggerui.11.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}
