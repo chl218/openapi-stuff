@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson 3 — Describe it well</title><link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<header class="top"><a href="index.html"><strong>OpenAPI / Swagger with C#</strong></a><nav><a href="lesson-02-code-first.html">Prev</a><a href="lesson-04-contract-first.html">Next: Contract-first</a></nav></header>
+<main>
+<p class="meta">Lesson 3 of 8 · pseudocode: <code>pseudocode/lesson-03-describe-well/</code></p>
+<h1>Describe the API so consumers need no guesswork</h1>
+<p class="lede">A generated spec is only as useful as the details you give it. This lesson adds every response a caller can get, the rules for each field, and examples.</p>
+
+<div class="sheet">
+<svg viewBox="0 0 860 340" role="img" aria-labelledby="t">
+<title id="t">One operation with all its responses</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#12304a"/></marker></defs>
+<rect x="10" y="110" width="250" height="120" fill="#fff" stroke="#12304a" stroke-width="2"/>
+<text x="24" y="136" font-size="14" font-weight="700" fill="#12304a" class="m">POST /books</text>
+<text x="24" y="160" font-size="12" fill="#5b7389">operationId: createBook</text>
+<text x="24" y="180" font-size="12" fill="#5b7389">summary + description</text>
+<text x="24" y="200" font-size="12" fill="#5b7389">body: NewBook</text>
+<text x="24" y="220" font-size="12" fill="#5b7389">tags: [Books]</text>
+
+<g font-size="13" fill="#12304a">
+<rect x="340" y="20" width="200" height="56" fill="#fff" stroke="#2a7f62" stroke-width="2"/><text x="352" y="44" font-weight="700">201 Created</text><text x="352" y="64" font-size="11" fill="#5b7389">Location header + Book</text>
+<rect x="340" y="94" width="200" height="56" fill="#fff" stroke="#c9402b" stroke-width="2"/><text x="352" y="118" font-weight="700">400 Bad Request</text><text x="352" y="138" font-size="11" fill="#5b7389">validation errors</text>
+<rect x="340" y="168" width="200" height="56" fill="#fff" stroke="#c9402b" stroke-width="2"/><text x="352" y="192" font-weight="700">409 Conflict</text><text x="352" y="212" font-size="11" fill="#5b7389">ISBN already exists</text>
+<rect x="340" y="242" width="200" height="56" fill="#fff" stroke="#c9402b" stroke-width="2"/><text x="352" y="266" font-weight="700">401 / 403</text><text x="352" y="286" font-size="11" fill="#5b7389">auth (Lesson 5)</text>
+</g>
+<g stroke="#12304a" stroke-width="2" fill="none" marker-end="url(#a)"><path d="M260 150 L338 50"/><path d="M260 165 L338 122"/><path d="M260 180 L338 196"/><path d="M260 200 L338 270"/></g>
+
+<rect x="640" y="20" width="210" height="56" fill="#eef6fb" stroke="#2f6f9f" stroke-width="2"/><text x="652" y="44" font-size="13" font-weight="700" fill="#12304a" class="m">Book</text><text x="652" y="64" font-size="11" fill="#5b7389">id, title, isbn, year</text>
+<rect x="640" y="131" width="210" height="110" fill="#eef6fb" stroke="#2f6f9f" stroke-width="2"/><text x="652" y="155" font-size="13" font-weight="700" fill="#12304a" class="m">ProblemDetails</text><text x="652" y="177" font-size="11" fill="#5b7389">type, title, status,</text><text x="652" y="195" font-size="11" fill="#5b7389">detail, errors{}</text><text x="652" y="223" font-size="11" fill="#c9402b">shared by all errors</text>
+<g stroke="#2f6f9f" stroke-width="2" fill="none" marker-end="url(#a)"><path d="M540 48H638"/><path d="M540 122 L638 160"/><path d="M540 196 L638 196"/><path d="M540 270 L640 230"/></g>
+</svg>
+<p class="caption">Left: the operation. Middle: every response a caller must handle. Right: the schemas those responses point to.</p>
+</div>
+
+<h2>What you will learn</h2>
+<ul>
+<li>Declare each possible status code, not just the happy path.</li>
+<li>Return errors as RFC 9457 Problem Details so every error has one shape.</li>
+<li>Put rules on fields (required, length, ISBN pattern, year range) so they appear as schema constraints.</li>
+<li>Add summaries, descriptions, tags, and example values.</li>
+</ul>
+
+<h2>Where each detail comes from in C#</h2>
+<table>
+<tr><th>You want in the spec</th><th>You add in code</th></tr>
+<tr><td>Response status and body type</td><td><code>.Produces&lt;T&gt;(status)</code> or <code>TypedResults</code> return types</td></tr>
+<tr><td>Summary / description / tag</td><td><code>.WithSummary</code>, <code>.WithDescription</code>, <code>.WithTags</code></td></tr>
+<tr><td>Stable operation name</td><td><code>.WithName("createBook")</code></td></tr>
+<tr><td>Required / length / range</td><td>Data annotation attributes on the request model</td></tr>
+<tr><td>Field docs</td><td>XML doc comments (enable <code>GenerateDocumentationFile</code>)</td></tr>
+</table>
+
+<div class="box try"><strong class="t">Run it locally</strong>
+Extend your Lesson 2 project. Post a book with a blank title and confirm you get a 400 body in Problem Details shape. Then open the UI and confirm that the 400 and 409 appear under <code>POST /books</code>.</div>
+<div class="box check"><strong class="t">You are done when</strong>
+Every operation lists at least one error response, and <code>Book</code> shows length and pattern constraints in the JSON.</div>
+
+<div class="pager"><a href="lesson-02-code-first.html">← Lesson 2</a><a href="lesson-04-contract-first.html">Lesson 4: Contract-first →</a></div>
+</main></body></html>
