@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Primer B — ASP.NET Core server crash course</title><link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<header class="top"><a href="index.html"><strong>OpenAPI / Swagger with C#</strong></a><nav><a href="primer-a-yaml.html">Prev</a><a href="lesson-01-anatomy.html">Next: Lesson 1</a></nav></header>
+<main>
+<p class="meta">Primer B · before Lesson 1 · about 60 minutes · exercise: <code>execercise/primer-b-aspnetcore/</code></p>
+<h1>An ASP.NET Core server, line by line</h1>
+<p class="lede">Lessons 2 to 8 all start from a <code>Program.cs</code> like the one below. This primer explains what each line does: the builder, services, configuration, middleware, endpoints, and how a request flows through them. No OpenAPI yet.</p>
+
+<div class="sheet">
+<svg viewBox="0 0 860 420" role="img" aria-labelledby="t d">
+<title id="t">How a request flows through an ASP.NET Core app</title>
+<desc id="d">An HTTP request enters Kestrel, passes through the middleware pipeline in order (exception handler, status code pages, a custom timing middleware), reaches routing, which picks an endpoint. Parameter binding fills the handler's arguments from the route, query string, body, headers, and the service container. The result is written as the response and travels back out through the same middleware in reverse.</desc>
+<defs>
+<marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#12304a"/></marker>
+<marker id="r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#c9402b"/></marker>
+</defs>
+
+<g font-size="13" fill="#12304a" text-anchor="middle">
+<rect x="10" y="60" width="100" height="70" fill="#fff" stroke="#12304a" stroke-width="2"/>
+<text x="60" y="90" font-weight="700">client</text><text x="60" y="110" font-size="11" class="m">GET /shelf/1</text>
+
+<rect x="140" y="40" width="110" height="110" fill="#fff" stroke="#12304a" stroke-width="2"/>
+<text x="195" y="80" font-weight="700">Kestrel</text><text x="195" y="100" font-size="11">web server</text><text x="195" y="118" font-size="11">builds HttpContext</text>
+</g>
+
+<rect x="280" y="20" width="330" height="150" fill="#eef6fb" stroke="#2f6f9f" stroke-width="2"/>
+<text x="292" y="40" font-size="13" font-weight="700" fill="#12304a">middleware pipeline (order of app.Use…)</text>
+<g font-size="12" fill="#12304a" text-anchor="middle">
+<rect x="292" y="54" width="94" height="100" fill="#fff" stroke="#12304a"/><text x="339" y="96" class="m">Exception</text><text x="339" y="112" class="m">Handler</text>
+<rect x="398" y="54" width="94" height="100" fill="#fff" stroke="#12304a"/><text x="445" y="96" class="m">StatusCode</text><text x="445" y="112" class="m">Pages</text>
+<rect x="504" y="54" width="94" height="100" fill="#fff" stroke="#c9402b" stroke-width="2"/><text x="551" y="96">timing</text><text x="551" y="112" class="m">app.Use(…)</text>
+</g>
+
+<rect x="640" y="40" width="210" height="110" fill="#fff" stroke="#12304a" stroke-width="2"/>
+<text x="745" y="68" font-size="13" font-weight="700" fill="#12304a" text-anchor="middle">routing → endpoint</text>
+<text x="745" y="92" font-size="11" fill="#5b7389" text-anchor="middle" class="m">MapGet("/shelf/{id:int}")</text>
+<text x="745" y="116" font-size="11" fill="#5b7389" text-anchor="middle">match method + path,</text>
+<text x="745" y="132" font-size="11" fill="#5b7389" text-anchor="middle">check constraints</text>
+
+<g stroke="#12304a" stroke-width="2" fill="none" marker-end="url(#a)">
+<path d="M110 82 H138"/><path d="M250 70 H290"/><path d="M386 70 H396"/><path d="M492 70 H502"/><path d="M598 70 H638"/>
+</g>
+<g stroke="#c9402b" stroke-width="2" fill="none" stroke-dasharray="6 4" marker-end="url(#r)">
+<path d="M638 135 H600"/><path d="M504 135 H494"/><path d="M398 135 H388"/><path d="M290 135 H252"/><path d="M138 112 H112"/>
+</g>
+<text x="445" y="190" font-size="12" fill="#c9402b" text-anchor="middle">the response travels back out through the same middleware, in reverse</text>
+
+<rect x="440" y="220" width="410" height="180" fill="#fff" stroke="#c9402b" stroke-width="2"/>
+<text x="456" y="244" font-size="13" font-weight="700" fill="#12304a">handler + parameter binding</text>
+<text x="456" y="268" font-size="12" class="m" fill="#12304a">(int id, ShelfStore store) =&gt; …</text>
+<g font-size="12" fill="#12304a">
+<text x="456" y="296"><tspan class="m" font-weight="700">id</tspan>     ← route value <tspan class="m">{id}</tspan></text>
+<text x="456" y="318"><tspan class="m" font-weight="700">store</tspan>  ← service container</text>
+<text x="456" y="340"><tspan class="m" font-weight="700">int max</tspan> ← query string <tspan class="m">?max=</tspan></text>
+<text x="456" y="362"><tspan class="m" font-weight="700">NewBook</tspan> ← JSON request body</text>
+<text x="456" y="384">returns <tspan class="m">TypedResults.Ok(book)</tspan> → 200 + JSON</text>
+</g>
+<path d="M745 150 V218" stroke="#12304a" stroke-width="2" marker-end="url(#a)"/>
+
+<rect x="10" y="220" width="400" height="180" fill="#fff" stroke="#2f6f9f" stroke-width="2"/>
+<text x="26" y="244" font-size="13" font-weight="700" fill="#12304a">built once at startup (builder)</text>
+<g font-size="12" fill="#12304a">
+<text x="26" y="270"><tspan font-weight="700">configuration</tspan>: appsettings.json → appsettings.</text>
+<text x="26" y="288">  {Environment}.json → env vars → command line</text>
+<text x="26" y="314"><tspan font-weight="700">services</tspan> (dependency injection):</text>
+<text x="26" y="332" class="m" xml:space="preserve">  AddSingleton  one for the whole app</text>
+<text x="26" y="350" class="m" xml:space="preserve">  AddScoped     one per request</text>
+<text x="26" y="368" class="m" xml:space="preserve">  AddTransient  new every time asked</text>
+<text x="26" y="390"><tspan font-weight="700">logging</tspan>: console by default</text>
+</g>
+<path d="M410 318 H438" stroke="#2f6f9f" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+</svg>
+<p class="caption">Top: the per-request path. Bottom left: what the builder sets up once. The dashed blue arrow is dependency injection handing services to the handler.</p>
+</div>
+
+<h2>What you will learn</h2>
+<ul>
+<li>The five phases of <code>Program.cs</code>: builder, build, middleware, endpoints, run.</li>
+<li>Dependency injection and the three service lifetimes.</li>
+<li>Configuration layering, environments, and <code>launchSettings.json</code>.</li>
+<li>How routing and parameter binding decide where each handler argument comes from.</li>
+<li>Returning results and errors the way the rest of the course does (<code>TypedResults</code>, Problem Details).</li>
+</ul>
+
+<h2>1. The smallest server</h2>
+<pre><code>dotnet new web -n HelloApi
+cd HelloApi
+dotnet run</code></pre>
+<pre><code>var builder = WebApplication.CreateBuilder(args);   // 1. config, logging, services
+var app = builder.Build();                          // 2. the app
+app.MapGet("/", () =&gt; "Hello World!");              // 4. an endpoint
+app.Run();                                          // 5. start listening</code></pre>
+<p><code>Microsoft.NET.Sdk.Web</code> in the <code>.csproj</code> pulls in the whole framework: the <strong>Kestrel</strong> web server, routing, JSON, logging. Minimal APIs (<code>MapGet</code> and friends) are the style this course uses. Controllers are the older class-based style; Lesson 4 generates one.</p>
+
+<h2>2. Files the template gives you</h2>
+<table>
+<tr><th>File</th><th>What it is for</th></tr>
+<tr><td><code>Program.cs</code></td><td>The whole app: setup and endpoints. Top-level statements, no <code>Main</code> method.</td></tr>
+<tr><td><code>appsettings.json</code></td><td>Base configuration for every environment.</td></tr>
+<tr><td><code>appsettings.Development.json</code></td><td>Overrides loaded only when the environment is Development.</td></tr>
+<tr><td><code>Properties/launchSettings.json</code></td><td>Port and <code>ASPNETCORE_ENVIRONMENT</code> for <code>dotnet run</code> only. A published app ignores it.</td></tr>
+</table>
+
+<h2>3. Services and dependency injection</h2>
+<p>Register a class once with the builder. Any handler that lists it as a parameter receives an instance. You never call <code>new</code> on it yourself.</p>
+<pre><code>builder.Services.AddSingleton&lt;ShelfStore&gt;();   // one instance, shared by every request
+builder.Services.AddScoped&lt;RequestStamp&gt;();    // a fresh one per HTTP request
+
+app.MapGet("/shelf", (ShelfStore store) =&gt; store.All());   // injected by type</code></pre>
+<table>
+<tr><th>Lifetime</th><th>One instance per</th><th>Typical use</th></tr>
+<tr><td>Singleton</td><td>app</td><td>in-memory caches and stores (must be thread-safe), HTTP clients</td></tr>
+<tr><td>Scoped</td><td>request</td><td>database contexts, per-request state</td></tr>
+<tr><td>Transient</td><td>injection</td><td>small stateless helpers</td></tr>
+</table>
+<div class="box"><strong class="t">Requests run in parallel</strong>
+A singleton is shared by every request at once. If it holds a <code>List&lt;T&gt;</code> you change, guard it with a <code>lock</code> or use a concurrent collection. The course's in-memory book stores do this.</div>
+
+<h2>4. Configuration and environments</h2>
+<p>Configuration is a set of layered key/value sources. Later sources win:</p>
+<pre><code>appsettings.json  →  appsettings.{Environment}.json  →  user secrets (Development)
+                  →  environment variables  →  command-line arguments</code></pre>
+<pre><code>// appsettings.json
+{ "Library": { "Name": "Primer Library", "Greeting": "Welcome." } }
+
+// read one value
+app.MapGet("/", (IConfiguration config) =&gt; config["Library:Greeting"]);
+
+// or bind a whole section to a class
+builder.Services.Configure&lt;LibraryOptions&gt;(builder.Configuration.GetSection("Library"));
+app.MapGet("/name", (IOptions&lt;LibraryOptions&gt; o) =&gt; o.Value.Name);</code></pre>
+<p>Nested keys use <code>:</code> in code and <code>__</code> (double underscore) in environment variables: <code>Library__Greeting=hi</code>. The environment comes from <code>ASPNETCORE_ENVIRONMENT</code>, or <code>dotnet run --environment Production</code>. Check it with <code>app.Environment.IsDevelopment()</code>; Lessons 2 and 8 use this to show Swagger UI only in Development.</p>
+
+<h2>5. Middleware: the request pipeline</h2>
+<p>Middleware is code every request passes through, in the order you add it. Each piece can act before and after the rest of the pipeline, or stop the request early.</p>
+<pre><code>app.UseExceptionHandler();   // outermost: catches exceptions from everything below
+app.UseStatusCodePages();    // gives empty 404s a body
+
+app.Use(async (context, next) =&gt;
+{
+    var watch = Stopwatch.StartNew();
+    // ... before: runs on the way in
+    await next(context);     // the rest of the pipeline, then the endpoint
+    // ... after: runs on the way out
+    app.Logger.LogInformation("{Path} took {Ms} ms", context.Request.Path, watch.ElapsedMilliseconds);
+});</code></pre>
+<p>Order matters. Exception handling goes first so it wraps everything. Authentication goes before authorization (Lesson 5). The <code>Map…</code> calls can sit anywhere in <code>Program.cs</code>: endpoints always run at the end of the pipeline, after every middleware.</p>
+
+<h2>6. Routing and parameter binding</h2>
+<pre><code>app.MapGet("/hello/{name}", (string name, bool? shout) =&gt; ...);   // /hello/Ada?shout=true
+app.MapGet("/shelf/{id:int}", (int id) =&gt; ...);                    // :int constraint; /shelf/abc → 404
+app.MapPost("/shelf", (NewBook input) =&gt; ...);                    // JSON body
+app.MapDelete("/shelf/{id:int}", ...);
+
+var shelf = app.MapGroup("/shelf");                               // shared prefix
+shelf.MapGet("/", ...);                                           // → GET /shelf</code></pre>
+<p>ASP.NET Core decides where each handler argument comes from:</p>
+<table>
+<tr><th>Parameter</th><th>Comes from</th><th>Override with</th></tr>
+<tr><td>Name matches a <code>{segment}</code> in the route</td><td>route</td><td><code>[FromRoute]</code></td></tr>
+<tr><td>Type registered as a service</td><td>DI container</td><td><code>[FromServices]</code></td></tr>
+<tr><td>Simple type (int, string, bool…) not in the route</td><td>query string</td><td><code>[FromQuery]</code></td></tr>
+<tr><td>Complex type (record, class)</td><td>JSON body</td><td><code>[FromBody]</code></td></tr>
+<tr><td>Anything</td><td>header</td><td><code>[FromHeader(Name = "User-Agent")]</code></td></tr>
+<tr><td><code>HttpContext</code>, <code>CancellationToken</code></td><td>the current request</td><td>—</td></tr>
+</table>
+<p>Nullable or defaulted parameters (<code>bool? shout</code>, <code>int max = 50</code>) are optional. Others are required, and a missing one gives a 400.</p>
+
+<h2>7. Results and errors</h2>
+<pre><code>app.MapGet("/shelf/{id:int}", Results&lt;Ok&lt;Book&gt;, NotFound&gt; (int id, ShelfStore store) =&gt;
+    store.Find(id) is { } book ? TypedResults.Ok(book) : TypedResults.NotFound());
+
+app.MapPost("/shelf", (NewBook input, ShelfStore store) =&gt;
+{
+    var book = store.Add(input);
+    return TypedResults.Created($"/shelf/{book.Id}", book);   // 201 + Location header
+});</code></pre>
+<ul>
+<li>Return a string and you get <code>text/plain</code>. Return an object and you get JSON, with property names in camelCase (<code>Title</code> becomes <code>"title"</code>).</li>
+<li><code>TypedResults</code> set the status code. Declaring the return type as <code>Results&lt;Ok&lt;Book&gt;, NotFound&gt;</code> lists every outcome in the signature. In Lesson 2 you will see why: the OpenAPI generator reads it.</li>
+<li><code>builder.Services.AddProblemDetails()</code> with <code>UseExceptionHandler()</code> turns errors into one standard JSON shape (RFC 9457) instead of an HTML page or a stack trace. Lesson 3 builds on this.</li>
+</ul>
+
+<h2>Cheat sheet</h2>
+<table>
+<tr><th>Symptom</th><th>Likely cause</th></tr>
+<tr><td>404 on a route you mapped</td><td>Wrong method (GET vs POST), a route constraint did not match, or a group prefix you forgot.</td></tr>
+<tr><td>400 "Failed to read parameter"</td><td>A required query value is missing, or the body is not valid JSON for the type.</td></tr>
+<tr><td>415 Unsupported Media Type</td><td>The POST is missing <code>Content-Type: application/json</code>.</td></tr>
+<tr><td>"Unable to resolve service"</td><td>You forgot to register it in <code>builder.Services</code>.</td></tr>
+<tr><td>Data disappears between requests</td><td>The store is scoped or transient. Make it a singleton.</td></tr>
+<tr><td>Config value is not what you set</td><td>A later source overrides it: environment file, env var, or the wrong environment.</td></tr>
+</table>
+
+<h2>Run it locally</h2>
+<div class="box try"><strong class="t">Exercise</strong>
+Build <code>HelloApi</code> from <code>execercise/primer-b-aspnetcore/</code>. It has a greeting from configuration, a route and query example, injected services with two lifetimes, a timing middleware, a <code>/shelf</code> route group with GET and POST, a <code>/boom</code> endpoint that throws, and a Development-only endpoint. The solution has a <code>requests.http</code> file with every call.</div>
+<div class="box check"><strong class="t">You are done when</strong>
+<code>/shelf/abc</code> returns 404 without your handler running, an empty title gives a 400 Problem Details body, <code>/boom</code> gives a 500 JSON body, every response carries <code>X-Elapsed-Ms</code>, and <code>Library__Greeting=hi</code> changes <code>GET /</code> without editing a file.</div>
+
+<div class="pager"><a href="primer-a-yaml.html">← Primer A: YAML</a><a href="lesson-01-anatomy.html">Lesson 1: Anatomy →</a></div>
+</main></body></html>

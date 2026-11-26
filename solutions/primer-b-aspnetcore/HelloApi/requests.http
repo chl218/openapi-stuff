@@ -1,0 +1,43 @@
+# Click "Send Request" above each block (VS Code REST Client, Visual Studio, or Rider),
+# or copy the URL into a browser / curl.
+
+@base = http://localhost:5080
+
+### Configuration value
+GET {{base}}/
+
+### Route parameter + query string
+GET {{base}}/hello/Ada?shout=true
+
+### Options, scoped service, header binding
+GET {{base}}/whoami
+
+### Query parameter with a default
+GET {{base}}/shelf?max=1
+
+### Route constraint: 200, then 404 for a missing id, then 404 because "abc" is not an int
+GET {{base}}/shelf/1
+
+###
+GET {{base}}/shelf/99
+
+###
+GET {{base}}/shelf/abc
+
+### JSON body -> 201 Created with a Location header
+POST {{base}}/shelf
+Content-Type: application/json
+
+{ "title": "Snow Crash", "year": 1992 }
+
+### Validation -> 400 Problem Details
+POST {{base}}/shelf
+Content-Type: application/json
+
+{ "title": "" }
+
+### Unhandled exception -> 500 Problem Details
+GET {{base}}/boom
+
+### Development only
+GET {{base}}/debug/env

@@ -1,0 +1,56 @@
+FILE Program.cs
+
+TYPE Book           : record with Id (int), Title (string), Year (int, optional)
+TYPE NewBook        : record with Title, Year
+TYPE LibraryOptions : class with Name, Greeting (strings, with defaults)
+TYPE RequestStamp   : class with a short random Id, set once when created
+TYPE ShelfStore     : class holding a list of Book (start with two), a lock, and the next Id
+                      All(), Find(id), Add(NewBook) -> Book
+
+---- 1. BUILDER ----
+CREATE builder
+REGISTER services
+  ShelfStore      as SINGLETON   (one for the whole app)
+  RequestStamp    as SCOPED      (one per request)
+  Problem Details                (standard JSON error bodies)
+BIND configuration section "Library" to LibraryOptions
+
+---- 2. APP ----
+BUILD app
+
+---- 3. MIDDLEWARE (in this order) ----
+USE exception handler         (unhandled exception -> 500 Problem Details)
+USE status code pages         (empty 404/405 -> Problem Details body)
+USE inline middleware
+  START a stopwatch
+  BEFORE the response starts: SET header X-Elapsed-Ms
+  CALL next
+  LOG method, path, status, elapsed
+
+---- 4. ENDPOINTS ----
+GET /                -> read "Library:Greeting" from IConfiguration, return it as text
+GET /hello/{name}    -> "Hello, {name}!"; IF query shout=true, upper-case it
+GET /whoami          -> JSON: library name (from options), request stamp Id, User-Agent header
+
+GROUP /shelf
+  GET /              -> query max (int, default 50); return up to max books
+  GET /{id:int}      -> 200 with the book, or 404
+  POST /             -> read NewBook from the JSON body
+                        IF title blank: RETURN 400 validation problem for "title"
+                        ADD, RETURN 201 with Location "/shelf/{id}"
+
+GET /boom            -> THROW an exception (to see the exception handler work)
+
+IF environment is Development
+  GET /debug/env     -> JSON: environment name, application name, content root
+
+---- 5. RUN ----
+RUN app
+
+NOTE
+  Handlers get their inputs from parameters. ASP.NET Core decides where each comes from:
+    name in the route template       -> route
+    registered service type          -> container
+    simple type, not in the route    -> query string
+    complex type (record/class)      -> JSON body
+    [FromHeader]                     -> header

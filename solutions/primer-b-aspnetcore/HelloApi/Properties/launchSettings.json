@@ -1,0 +1,12 @@
+{
+  // Used by "dotnet run" and Visual Studio only. A published app ignores this file.
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:5080",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

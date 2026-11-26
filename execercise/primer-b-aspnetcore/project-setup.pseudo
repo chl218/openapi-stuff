@@ -1,0 +1,21 @@
+SHELL
+  verify the SDK:            dotnet --version
+  create empty web project:  dotnet new web -n HelloApi
+  enter the folder:          cd HelloApi
+
+NO PACKAGES
+  everything in this primer ships with ASP.NET Core
+
+LOOK AT what the template made
+  HelloApi.csproj                  Sdk="Microsoft.NET.Sdk.Web"  -> web server + minimal APIs
+  Program.cs                       four lines: builder, app, one MapGet, Run
+  appsettings.json                 base configuration
+  appsettings.Development.json     overrides for Development
+  Properties/launchSettings.json   port + ASPNETCORE_ENVIRONMENT for "dotnet run"
+
+EDIT
+  appsettings.json: ADD section "Library" with Name and Greeting
+  appsettings.Development.json: ADD section "Library" with a different Greeting only
+
+CHECK
+  dotnet run, open the URL printed in the console, see "Hello World!"

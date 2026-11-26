@@ -1,0 +1,12 @@
+<!-- "Sdk=...Web" gives you ASP.NET Core: the Kestrel web server, routing, minimal APIs. -->
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>     <!-- the .NET version to build for -->
+    <Nullable>enable</Nullable>                    <!-- compiler warns about possible null mistakes -->
+    <ImplicitUsings>enable</ImplicitUsings>        <!-- common "using" lines are added for you -->
+  </PropertyGroup>
+
+  <!-- No packages: everything in this primer ships with ASP.NET Core itself. -->
+
+</Project>
