@@ -1,0 +1,40 @@
+# broken.yaml with all six problems fixed. Each fix is marked "FIX n".
+
+openapi: 3.1.0
+info:
+  title: "Library API: internal"   # FIX 1: ": " inside a plain value starts a new key. Quote it.
+  version: "1.10"                  # FIX 2: unquoted 1.10 is the number 1.1. Versions are strings.
+  description: Look up books
+servers:
+  - url: http://localhost:5000     # fine: "://" has no space after the colon
+paths:
+  /books:
+    get:
+      operationId: listBooks
+      deprecated: false            # FIX 3: "no" is the string "no" in YAML 1.2 (and false in old 1.1
+                                   #        parsers). Write true/false and every parser agrees.
+      tags: [Books]                # flow style is legal; fine for short lists
+      responses:
+        '200':                     # OpenAPI asks for quoted status codes
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Book'   # FIX 4: " #" starts a comment, so the
+                                                      #        unquoted value was empty (null).
+components:
+  schemas:
+    Book:
+      type: object
+      required:                    # a list may sit at the same indent as its key. Legal.
+      - id
+      - title
+      properties:
+        id:    {type: integer}
+        title: {type: string}
+        isbn:  {type: string, example: '0123456789'}   # FIX 5: the line was indented with a TAB.
+                                                       #        YAML allows spaces only.
+                                                       # FIX 6: unquoted 0123456789 is the number
+                                                       #        123456789. The leading zero is lost.

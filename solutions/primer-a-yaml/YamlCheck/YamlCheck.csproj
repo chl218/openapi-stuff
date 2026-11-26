@@ -1,0 +1,16 @@
+<!-- A plain console app (not a web app): it reads one YAML file and prints it as JSON. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>                   <!-- builds a runnable program -->
+    <TargetFramework>net10.0</TargetFramework>     <!-- the .NET version to build for -->
+    <Nullable>enable</Nullable>                    <!-- compiler warns about possible null mistakes -->
+    <ImplicitUsings>enable</ImplicitUsings>        <!-- common "using" lines are added for you -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The YAML parser. "16.*" = latest 16.x; pin an exact version after the first restore. -->
+    <PackageReference Include="YamlDotNet" Version="16.*" />
+  </ItemGroup>
+
+</Project>

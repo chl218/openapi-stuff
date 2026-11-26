@@ -1,0 +1,62 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Library API: internal",
+    "version": "1.10",
+    "description": "Look up books"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000"
+    }
+  ],
+  "paths": {
+    "/books": {
+      "get": {
+        "operationId": "listBooks",
+        "deprecated": false,
+        "tags": [
+          "Books"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Book"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Book": {
+        "type": "object",
+        "required": [
+          "id",
+          "title"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "isbn": {
+            "type": "string",
+            "example": "0123456789"
+          }
+        }
+      }
+    }
+  }
+}

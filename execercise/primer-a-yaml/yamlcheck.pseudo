@@ -1,0 +1,31 @@
+PROJECT YamlCheck   (a console tool that shows how a parser reads your YAML)
+
+CREATE a console project; add the YamlDotNet package.
+
+PROGRAM
+  EXPECT one argument: the path to a YAML file
+  LOAD the file into a YAML stream
+    ON syntax error: PRINT line, column, message; EXIT 1
+  FOR EACH document in the stream
+    CONVERT the root node to JSON
+    PRINT it indented
+
+CONVERT node
+  mapping   -> JSON object (keys are the key text)
+  sequence  -> JSON array
+  scalar    -> see SCALAR RULES
+
+SCALAR RULES  (YAML 1.2 core schema)
+  quoted ('..' or "..") or block (| or >)  -> string, always
+  empty, ~, null                           -> null
+  true / false (any case)                  -> boolean
+  looks like an integer                    -> number
+  looks like a decimal or 1e3              -> number
+  anything else                            -> string
+
+RUN
+  dotnet run --project YamlCheck -- ../broken.yaml
+
+NOTE
+  JSON shows types plainly: strings in quotes, numbers and booleans without.
+  That is the whole point of the tool.

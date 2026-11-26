@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "CGa3n4c2UW4=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Jack\\Documents\\repo\\openapi-course\\solutions\\primer-a-yaml\\YamlCheck\\YamlCheck.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Jack\\.nuget\\packages\\yamldotnet\\16.3.0\\yamldotnet.16.3.0.nupkg.sha512"
+  ],
+  "logs": []
+}

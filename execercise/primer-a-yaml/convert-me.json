@@ -1,0 +1,16 @@
+{
+  "name": "Library API",
+  "owners": ["alice", "bob"],
+  "launch": {
+    "date": "2026-01-15",
+    "public": true,
+    "regions": [
+      { "code": "NO", "label": "Norway" },
+      { "code": "SE", "label": "Sweden" }
+    ]
+  },
+  "maxPageSize": 100,
+  "apiVersion": "2.0",
+  "contact": null,
+  "notes": "Line one.\nLine two.\n"
+}

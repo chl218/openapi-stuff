@@ -1,0 +1,20 @@
+# convert-me.json, written as block-style YAML.
+
+name: Library API
+owners:
+  - alice
+  - bob
+launch:
+  date: "2026-01-15"     # quoted: some parsers turn an unquoted date into a timestamp
+  public: true
+  regions:
+    - code: "NO"         # quoted: old YAML 1.1 parsers read NO as false (the "Norway problem")
+      label: Norway
+    - code: SE
+      label: Sweden
+maxPageSize: 100
+apiVersion: "2.0"        # quoted: unquoted 2.0 is a number
+contact: null            # or ~, or leave the value empty
+notes: |                 # | keeps line breaks; the final newline is kept too
+  Line one.
+  Line two.

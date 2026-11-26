@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Primer A — YAML crash course</title><link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<header class="top"><a href="index.html"><strong>OpenAPI / Swagger with C#</strong></a><nav><a href="index.html">Overview</a><a href="primer-b-aspnetcore.html">Next: ASP.NET Core primer</a></nav></header>
+<main>
+<p class="meta">Primer A · before Lesson 1 · about 45 minutes · exercise: <code>execercise/primer-a-yaml/</code></p>
+<h1>YAML in 45 minutes</h1>
+<p class="lede">An OpenAPI file is almost always YAML. YAML is JSON with fewer brackets and quotes, and with whitespace doing the structural work. Learn its few rules and its handful of traps, and Lesson 1 becomes a lesson about APIs instead of about indentation.</p>
+
+<div class="sheet">
+<svg viewBox="0 0 860 380" role="img" aria-labelledby="t d">
+<title id="t">The same data in YAML and JSON</title>
+<desc id="d">Left: a YAML snippet. Right: the same data as JSON. Arrows show that indentation becomes object nesting, a dash becomes an array item, and an unquoted 1.10 becomes the number 1.1.</desc>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#c9402b"/></marker></defs>
+<text x="20" y="30" font-size="14" font-weight="700" fill="#12304a">YAML (what you write)</text>
+<rect x="20" y="42" width="330" height="290" fill="#0f2233"/>
+<g font-size="14" class="m" fill="#dcebf7">
+<text class="m" x="36" y="74">info:</text>
+<text class="m" x="36" y="100"><tspan fill="#5b7389">··</tspan>title: Library API</text>
+<text class="m" x="36" y="126"><tspan fill="#5b7389">··</tspan>version: <tspan fill="#ff9a85">1.10</tspan></text>
+<text class="m" x="36" y="152">tags:</text>
+<text class="m" x="36" y="178"><tspan fill="#5b7389">··</tspan>- name: Books</text>
+<text class="m" x="36" y="204"><tspan fill="#5b7389">··</tspan>- name: Admin</text>
+<text class="m" x="36" y="230">notes: |</text>
+<text class="m" x="36" y="256"><tspan fill="#5b7389">··</tspan>Line one.</text>
+<text class="m" x="36" y="282"><tspan fill="#5b7389">··</tspan>Line two.</text>
+</g>
+<text x="36" y="318" font-size="12" fill="#9fb6c9">· = one space. Tabs are not allowed.</text>
+
+<text x="510" y="30" font-size="14" font-weight="700" fill="#12304a">JSON (what the parser sees)</text>
+<rect x="510" y="42" width="330" height="290" fill="#fff" stroke="#12304a" stroke-width="1.5"/>
+<g font-size="14" fill="#12304a">
+<text class="m" xml:space="preserve" x="526" y="74">{ "info": {</text>
+<text class="m" xml:space="preserve" x="526" y="100">    "title": "Library API",</text>
+<text class="m" xml:space="preserve" x="526" y="126">    "version": <tspan fill="#c9402b" font-weight="700">1.1</tspan> },</text>
+<text class="m" xml:space="preserve" x="526" y="152">  "tags": [</text>
+<text class="m" xml:space="preserve" x="526" y="178">    { "name": "Books" },</text>
+<text class="m" xml:space="preserve" x="526" y="204">    { "name": "Admin" } ],</text>
+<text class="m" xml:space="preserve" x="526" y="230">  "notes":</text>
+<text class="m" xml:space="preserve" x="526" y="256">    "Line one.\nLine two.\n"</text>
+<text class="m" xml:space="preserve" x="526" y="282">}</text>
+</g>
+
+<g stroke="#c9402b" stroke-width="2" fill="none" marker-end="url(#a)">
+<path d="M352 100 H506"/><path d="M352 126 C430 126 430 126 506 126"/><path d="M352 190 H506"/><path d="M352 268 H506"/>
+</g>
+<g font-size="11" fill="#c9402b" text-anchor="middle">
+<text x="430" y="92">indent = nesting</text>
+<text x="430" y="144">unquoted number!</text>
+<text x="430" y="182">dash = list item</text>
+<text x="430" y="260">| keeps line breaks</text>
+</g>
+<text x="430" y="362" text-anchor="middle" font-size="13" fill="#5b7389">Every YAML document you write for OpenAPI is just a JSON document with nicer syntax.</text>
+</svg>
+<p class="caption">The red <code>1.1</code> is the most common YAML bug in API specs: <code>version: 1.10</code> is a number, and the trailing zero is gone. Quote it.</p>
+</div>
+
+<h2>What you will learn</h2>
+<ul>
+<li>The three building blocks: mappings, sequences, scalars.</li>
+<li>How indentation creates structure, and why tabs break it.</li>
+<li>When a value needs quotes, and what happens if you forget.</li>
+<li>Multi-line strings with <code>|</code> and <code>&gt;</code>.</li>
+<li>The YAML you will meet in OpenAPI files: <code>$ref</code>, status codes, flow style.</li>
+</ul>
+
+<h2>1. Three building blocks</h2>
+<p>Everything in YAML is one of three things. They map exactly onto JSON.</p>
+<table>
+<tr><th>YAML</th><th>JSON</th><th>Looks like</th></tr>
+<tr><td>Mapping</td><td>object</td><td><code>key: value</code> lines at the same indent</td></tr>
+<tr><td>Sequence</td><td>array</td><td>lines starting with <code>- </code></td></tr>
+<tr><td>Scalar</td><td>string, number, boolean, null</td><td>a single value</td></tr>
+</table>
+<pre><code># a mapping (the whole document is one)
+title: Library API        # key, colon, SPACE, value
+maxPageSize: 100
+
+# a sequence of scalars
+owners:
+  - alice
+  - bob
+
+# a sequence of mappings: each "- " starts a new item
+servers:
+  - url: https://api.example.com
+    description: Production   # same indent as "url" = same item
+  - url: http://localhost:5000
+    description: Local</code></pre>
+<p>The space after the colon matters. <code>key:value</code> is a single string, not a key and a value. The space after the dash matters too.</p>
+
+<h2>2. Indentation is the structure</h2>
+<ul>
+<li>Children are indented more than their parent. Siblings line up exactly.</li>
+<li>Two spaces is the convention. Any number works if you stay consistent within a block.</li>
+<li><strong>Tabs are forbidden</strong> for indentation. Set your editor to insert spaces for <code>.yaml</code> files.</li>
+<li>A list may sit at the same indent as its key. Both of these are legal and mean the same:</li>
+</ul>
+<pre><code>required:          required:
+  - id             - id
+  - title          - title</code></pre>
+
+<h2>3. Scalars and the quoting rules</h2>
+<p>An unquoted value is guessed: the parser decides whether it is a number, a boolean, null, or a string. Quotes stop the guessing. In YAML 1.2 (what modern parsers use) the guesses are:</p>
+<table>
+<tr><th>You write</th><th>You get</th><th>If you meant a string</th></tr>
+<tr><td><code>42</code>, <code>-7</code></td><td>integer</td><td><code>'42'</code></td></tr>
+<tr><td><code>1.10</code>, <code>2.0</code>, <code>1e3</code></td><td>number (1.1, 2, 1000)</td><td><code>'1.10'</code></td></tr>
+<tr><td><code>0123</code></td><td>integer 123 (zero lost)</td><td><code>'0123'</code></td></tr>
+<tr><td><code>true</code>, <code>false</code></td><td>boolean</td><td><code>'true'</code></td></tr>
+<tr><td><code>null</code>, <code>~</code>, nothing</td><td>null</td><td><code>'null'</code></td></tr>
+<tr><td><code>yes</code>, <code>no</code>, <code>on</code>, <code>off</code></td><td>string in YAML 1.2, <em>boolean</em> in old 1.1 parsers</td><td>quote it, or use true/false</td></tr>
+<tr><td><code>2026-01-15</code></td><td>string, or a timestamp in some parsers</td><td><code>'2026-01-15'</code></td></tr>
+</table>
+<div class="box"><strong class="t">The "Norway problem"</strong>
+In YAML 1.1, <code>country: NO</code> is the boolean <code>false</code>. YAML 1.2 fixed that, but plenty of tools still use 1.1 parsers. Quote anything that could be mistaken for a boolean.</div>
+
+<h3>Single or double quotes?</h3>
+<pre><code>a: 'single: no escapes, write '' for a quote'
+b: "double: escapes work\n\té"
+c: plain text is fine too, unless it contains ": " or " #"</code></pre>
+<p>You must quote a value that:</p>
+<ul>
+<li>contains <code>": "</code> (colon + space). The parser reads it as a new key.</li>
+<li>contains <code>" #"</code> (space + hash). The rest of the line becomes a comment.</li>
+<li>starts with one of <code>{ [ * &amp; ! | &gt; ' " % @ `</code> or <code>#</code>.</li>
+</ul>
+
+<h2>4. Multi-line strings</h2>
+<pre><code>description: |      # literal: keeps every line break
+  Returns all books.
+  Sorted by title.
+# -> "Returns all books.\nSorted by title.\n"
+
+summary: >          # folded: joins lines with spaces, blank line = paragraph
+  Returns all books,
+  sorted by title.
+# -> "Returns all books, sorted by title.\n"
+
+note: |-            # add "-" to drop the final newline
+  No trailing newline.</code></pre>
+<p>OpenAPI <code>description</code> fields support Markdown, so <code>|</code> is the usual choice there.</p>
+
+<h2>5. Flow style: JSON inside YAML</h2>
+<p>Brackets and braces work in YAML too. Any JSON is valid YAML. Use flow style for short things only.</p>
+<pre><code>tags: [Books, Admin]
+id: {type: integer, format: int64}</code></pre>
+
+<h2>6. Comments, documents, anchors</h2>
+<pre><code># a comment runs to the end of the line
+---                 # starts a new document (several per file are allowed)
+defaults: &amp;page     # &amp;name sets an anchor
+  limit: 20
+  offset: 0
+search:
+  paging: *page     # *name reuses it (an alias)</code></pre>
+<p>OpenAPI tools handle anchors unevenly. In specs, use <code>$ref</code> for reuse instead (Lesson 1).</p>
+
+<h2>7. YAML you will see in OpenAPI files</h2>
+<pre><code>paths:
+  /books/{id}:                    # keys can contain / and { }
+    get:
+      responses:
+        '200':                    # OpenAPI asks for quoted status codes
+          description: OK
+          content:
+            application/json:     # "/" in a key is fine
+              schema:
+                $ref: '#/components/schemas/Book'   # MUST be quoted: " #" starts a comment</code></pre>
+<div class="box"><strong class="t">The <code>$ref</code> trap</strong>
+<code>$ref: #/components/schemas/Book</code> parses without an error. The value is empty, because everything after <code> #</code> is a comment. Your tools will then complain about a null reference somewhere far away. Always quote <code>$ref</code> values.</div>
+
+<h2>Cheat sheet</h2>
+<table>
+<tr><th>Symptom</th><th>Likely cause</th></tr>
+<tr><td>"mapping values are not allowed here"</td><td>An unquoted <code>": "</code> inside a value, or a missing space after a key's colon on the line above.</td></tr>
+<tr><td>"found character that cannot start any token" / tab error</td><td>A tab in the indentation.</td></tr>
+<tr><td>A value is unexpectedly <code>null</code></td><td>An unquoted <code>#</code> after a space, or an empty value.</td></tr>
+<tr><td>A version or ID lost digits</td><td>It was parsed as a number. Quote it.</td></tr>
+<tr><td>A field ended up in the wrong object</td><td>Its indentation lines up with the wrong parent.</td></tr>
+</table>
+
+<h2>Run it locally</h2>
+<div class="box try"><strong class="t">Exercise</strong>
+Build <code>YamlCheck</code>, a small C# console tool that parses a YAML file and prints it as JSON (see <code>yamlcheck.pseudo</code>, or copy it from <code>solutions/primer-a-yaml/</code>). Then fix the six problems in <code>broken.yaml</code>, running <code>dotnet run --project YamlCheck -- broken.yaml</code> after each fix until the output matches <code>expected.json</code>. Finally, rewrite <code>convert-me.json</code> as block-style YAML by hand.</div>
+<div class="box check"><strong class="t">You are done when</strong>
+<code>broken.yaml</code> parses to <code>expected.json</code>, your converted file round-trips to the same data, and you can explain why <code>version: 1.10</code> and <code>version: '1.10'</code> differ.</div>
+
+<div class="pager"><a href="index.html">← Overview</a><a href="primer-b-aspnetcore.html">Primer B: ASP.NET Core server →</a></div>
+</main></body></html>
