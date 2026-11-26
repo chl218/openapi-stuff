@@ -1,0 +1,24 @@
+{
+  "runtime": "Net90",
+  "defaultVariables": null,
+  "documentGenerator": {
+    "fromDocument": {
+      "json": "../../contracts/library.yaml",
+      "url": "",
+      "output": null
+    }
+  },
+  "codeGenerators": {
+    "openApiToCSharpController": {
+      "controllerStyle": "Abstract",
+      "controllerTarget": "AspNetCore",
+      "useActionResultType": true,
+      "className": "{controller}ControllerBase",
+      "namespace": "Library.Server.Generated",
+      "jsonLibrary": "SystemTextJson",
+      "generateOptionalParameters": false,
+      "generateDataAnnotations": true,
+      "output": "Generated/Controllers.g.cs"
+    }
+  }
+}

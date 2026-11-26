@@ -1,0 +1,22 @@
+{
+  "runtime": "Net90",
+  "defaultVariables": null,
+  "documentGenerator": {
+    "fromDocument": {
+      "json": "../../contracts/library.yaml",
+      "url": "",
+      "output": null
+    }
+  },
+  "codeGenerators": {
+    "openApiToCSharpClient": {
+      "className": "LibraryClient",
+      "operationGenerationMode": "SingleClientFromOperationId",
+      "namespace": "Library.Contract.Tests.Generated",
+      "jsonLibrary": "SystemTextJson",
+      "generateClientInterfaces": true,
+      "exposeJsonSerializerSettings": false,
+      "output": "Generated/LibraryClient.g.cs"
+    }
+  }
+}

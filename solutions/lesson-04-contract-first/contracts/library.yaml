@@ -1,0 +1,133 @@
+# THE CONTRACT. In contract-first work this file is edited by people and reviewed in pull requests.
+# The server controller and the test client are both generated from it.
+# The OpenAPI version this document follows. 3.0.3 is used here because the NSwag code generator
+# supports 3.0.x best; support for 3.1 varies between generators.
+openapi: 3.0.3
+
+# Metadata about the API itself. Shown at the top of Swagger UI.
+info:
+  title: Library API
+  version: 1.0.0            # the version of YOUR API, not of OpenAPI
+  description: Look up, add, and remove books.
+
+# Where the API is hosted. Swagger UI sends "Try it out" calls here.
+servers:
+  - url: http://localhost:5000
+
+# Tags group operations in the docs. Each operation below lists one.
+tags:
+  - name: Books
+
+# paths = every URL the API answers, with one entry per HTTP method.
+paths:
+  /books:
+    get:
+      tags: [Books]
+      operationId: listBooks     # unique name; client generators turn it into a method name
+      summary: List books
+      parameters:
+        - name: limit
+          in: query              # sent as /books?limit=10
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: A page of books.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Book" }   # $ref = reuse a schema defined under components
+        "400":
+          description: The limit is out of range.
+          content:
+            application/problem+json:                          # the standard error format (RFC 9457)
+              schema: { $ref: "#/components/schemas/Problem" }
+    post:
+      tags: [Books]
+      operationId: createBook
+      summary: Add a book
+      requestBody:
+        required: true           # the caller must send a body
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NewBook" }   # input shape: no id, the server assigns it
+      responses:
+        "201":
+          description: The book was created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Book" }
+        "400":
+          description: The request body is invalid.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problem" }
+        "409":                   # added in Lesson 4: the server rejects a duplicate ISBN
+          description: A book with this ISBN already exists.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problem" }
+  /books/{id}:
+    # Parameters declared here apply to every method under this path.
+    parameters:
+      - name: id
+        in: path                 # the {id} part of the URL
+        required: true           # path parameters are always required
+        schema: { type: integer }
+    get:
+      tags: [Books]
+      operationId: getBook
+      summary: Get one book
+      responses:
+        "200":
+          description: The book.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Book" }
+        "404":
+          description: No book has this id.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problem" }
+    delete:
+      tags: [Books]
+      operationId: deleteBook
+      summary: Remove a book
+      responses:
+        "204":                   # success with no response body
+          description: The book was removed.
+        "404":
+          description: No book has this id.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problem" }
+
+# components = reusable pieces. Define once here, point at them with $ref.
+components:
+  schemas:
+    # What the server returns for a book.
+    Book:
+      type: object
+      required: [id, title, isbn]   # year is optional
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        isbn: { type: string }
+        year: { type: integer }
+    # What a caller sends to create a book (same as Book, minus id).
+    NewBook:
+      type: object
+      required: [title, isbn]
+      properties:
+        title: { type: string }
+        isbn: { type: string }
+        year: { type: integer }
+    # The shared error body used by every 4xx response.
+    Problem:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        detail: { type: string }
+        status: { type: integer }

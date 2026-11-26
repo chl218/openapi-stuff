@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!-- Generated files are added to the build by the target below, so skip them in the normal file scan.
+       (Files that do not exist yet at scan time would otherwise be missed on the first build.) -->
+  <ItemGroup>
+    <Compile Remove="Generated/**" />
+  </ItemGroup>
+
+  <!-- Regenerate the controller base class from the contract before every compile. -->
+  <Target Name="GenerateFromContract" BeforeTargets="CoreCompile">
+    <!-- Install the NSwag tool listed in .config/dotnet-tools.json (the same version for everyone). -->
+    <Exec Command="dotnet tool restore" WorkingDirectory="$(MSBuildProjectDirectory)/../.." />
+    <!-- Run NSwag with the settings in nswag.json. Roll-forward lets a tool built for an older .NET run on a newer one. -->
+    <Exec Command="dotnet nswag run nswag.json" WorkingDirectory="$(MSBuildProjectDirectory)"
+          EnvironmentVariables="DOTNET_ROLL_FORWARD=Major" />
+    <!-- Now that the file exists, include it in this build. -->
+    <ItemGroup>
+      <Compile Include="Generated/**/*.cs" />
+    </ItemGroup>
+  </Target>
+
+</Project>
